@@ -1,0 +1,9 @@
+.navbar {
+  display: flex;
+}
+.navLinks {
+  margin-top: 10px;
+  font-size: medium;
+  margin-left: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+}
