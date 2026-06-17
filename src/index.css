@@ -1,61 +1,105 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Inter:wght@400;450;500;600&display=swap");
 @import "tailwindcss";
 
+/*
+  Trendora — "Field" (dark, athletic)
+  Inspired by performance-apparel minimalism: neutral near-black, a single
+  charged red accent, and bold uppercase grotesque type.
+  Display: Archivo (heavy grotesque). UI/body: Inter.
+*/
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Display face (var name kept as -serif so it doesn't collide with the
+     custom .font-display utility below). Holds the Archivo grotesque. */
+  --font-serif: "Archivo", "Inter", system-ui, sans-serif;
+
+  /* Surfaces — warm, light, comfortable */
+  --color-paper: #faf7f2; /* page background — soft warm cream */
+  --color-card: #fefdfb; /* raised surfaces */
+
+  /* Ink scale (warm neutrals) */
+  --color-ink: #2a251f; /* primary text — warm brown */
+  --color-ink-soft: #6f6259; /* secondary text */
+  --color-ink-faint: #a29680; /* tertiary / placeholders */
+  --color-line: #ede4da; /* hairline borders */
+
+  /* Accent — dusty rose / warm mauve. Soft and refined. */
+  --color-clay: #a87070;
+  --color-clay-deep: #8a5858;
+  --color-clay-tint: #f5e8e5;
+
+  /* Muted status tones (warm pills, dark text) */
+  --color-success: #6b7a5f;
+  --color-success-tint: #eceee7;
+  --color-warn: #9a8560;
+  --color-warn-tint: #f3ede5;
+  --color-danger: #a87070;
+  --color-danger-tint: #f5e8e5;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Base styles */
 body {
   font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-feature-settings: "ss01", "cv05";
 }
 
-/* Custom scrollbar */
+/* Display utility — Archivo grotesque, tightened for athletic headlines */
+.font-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+/* Eyebrow / label — small, spaced, uppercase utility text */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Warm, restrained scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-paper);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #d9cfc3;
+  border: 3px solid var(--color-paper);
+  border-radius: 999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: #c4b7a8;
 }
 
-/* Smooth transitions for all interactive elements */
-button,
-a,
-input,
-textarea {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Focus styles for accessibility */
+/* Accessible focus ring in the brand ink */
 *:focus-visible {
-  outline: 2px solid #000;
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
-
-/* Remove default focus outline for mouse users */
 *:focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Line clamp utility */
+/* Line clamps */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -63,139 +107,60 @@ textarea {
   overflow: hidden;
 }
 
-/* Custom animation */
+/* Reveal animation (used where motion isn't worth the JS) */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
 .animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Loading spinner */
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
-
 .animate-spin {
-  animation: spin 1s linear infinite;
+  animation: spin 0.9s linear infinite;
 }
 
-/* Hover lift effect */
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
-}
-
-/* Active scale effect */
-.active-scale:active {
-  transform: scale(0.98);
-}
-
-/* Gradient border animation */
-.gradient-border {
+/* Animated hairline underline for links/wordmark */
+.link-underline {
   position: relative;
-  background: linear-gradient(white, white) padding-box,
-    linear-gradient(45deg, #000, #666) border-box;
-  border: 2px solid transparent;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-underline:hover::after {
+  width: 100%;
 }
 
-/* Glass morphism */
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-}
-
-/* Custom text colors */
 .text-balance {
   text-wrap: balance;
 }
 
-/* Image loading placeholder */
-.img-loading {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
+/* Honor reduced-motion preference everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Offcanvas custom styles (if needed) */
-.offcanvas {
-  transition: transform 0.3s ease-in-out;
-}
-
-/* Toast notification */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Custom button styles */
-.btn-primary {
-  @apply bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-all duration-200 active:scale-[0.98];
-}
-
-.btn-secondary {
-  @apply bg-gray-100 text-gray-900 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 active:scale-[0.98];
-}
-
-/* Card hover glow */
-.card-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.card-glow::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.card-glow:hover::before {
-  left: 100%;
 }

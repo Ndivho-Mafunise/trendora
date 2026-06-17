@@ -1,67 +1,134 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Minus, Plus, ShoppingBag, Tag, Lock, Truck } from "lucide-react";
+import { useCart } from "@/context/useCart";
+import { Button } from "@/components/ui/button";
 
-export default function Cart({ cartItems, removeFromCart }) {
+const FREE_SHIPPING_THRESHOLD = 75;
+
+export default function Cart() {
+  const { cartItems, removeFromCart, updateQty, subtotal } = useCart();
   const navigate = useNavigate();
+  const [promoCode, setPromoCode] = useState("");
+  const [promoMessage, setPromoMessage] = useState(null);
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-20">
+      <div className="min-h-screen flex items-center justify-center bg-paper pt-20 px-4">
         <div className="text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          <p className="text-gray-500 text-lg">Your cart is empty.</p>
-          <button
-            onClick={() => navigate("/")}
-            className="mt-4 text-sm text-black font-medium hover:underline"
-          >
-            Continue Shopping
-          </button>
+          <ShoppingBag className="h-16 w-16 text-ink-faint mx-auto mb-5" strokeWidth={1} />
+          <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">
+            Your bag is empty
+          </h1>
+          <p className="text-ink-soft text-sm mt-1.5">
+            Pieces you add will appear here.
+          </p>
+          <Button onClick={() => navigate("/")} className="mt-6">
+            Continue shopping
+          </Button>
         </div>
       </div>
     );
   }
 
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const shippingProgress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
+  const shipping = remainingForFreeShipping > 0 ? 6.99 : 0;
+  const total = subtotal + shipping;
+
+  function handleApplyPromo(e) {
+    e.preventDefault();
+    if (!promoCode.trim()) return;
+    setPromoMessage({ type: "error", text: "That code isn't valid." });
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 px-4">
+    <div className="min-h-screen bg-paper pt-24 px-4 pb-16">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Shopping Bag</h1>
-          <p className="text-sm text-gray-500 mt-1">
+        <div className="mb-8 pb-6 border-b border-line">
+          <p className="eyebrow text-clay mb-2">Your bag</p>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-ink">
+            Shopping bag
+          </h1>
+          <p className="text-sm text-ink-soft mt-1.5">
             {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
           </p>
+        </div>
+
+        {/* Free shipping progress */}
+        <div className="bg-card border border-line rounded-xl p-5 mb-6">
+          {remainingForFreeShipping > 0 ? (
+            <p className="text-sm text-ink mb-2.5 flex items-center gap-2">
+              <Truck className="h-4 w-4 text-clay" strokeWidth={1.5} />
+              Add <span className="font-semibold">${remainingForFreeShipping.toFixed(2)}</span> more for free shipping
+            </p>
+          ) : (
+            <p className="text-sm text-success mb-2.5 flex items-center gap-2 font-medium">
+              <Truck className="h-4 w-4" strokeWidth={1.5} />
+              You've unlocked free shipping
+            </p>
+          )}
+          <div className="h-1.5 bg-line rounded-full overflow-hidden">
+            <div
+              className="h-full bg-clay rounded-full transition-all duration-500"
+              style={{ width: `${shippingProgress}%` }}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Cart Items */}
           <div className="flex-1 space-y-4">
-            {cartItems.map((item, index) => (
+            {cartItems.map((item) => (
               <div
-                key={`${item.id}-${index}`}
-                className="bg-white rounded-2xl shadow-sm p-4 flex gap-4 hover:shadow-md transition-shadow"
+                key={item.lineId}
+                className="bg-card border border-line rounded-xl p-4 flex gap-4 hover:border-ink/20 transition-colors"
               >
                 <img
                   src={item.thumbnail}
                   alt={item.title}
-                  className="w-24 h-24 object-cover rounded-xl flex-shrink-0"
+                  className="w-24 h-24 object-cover rounded-lg flex-shrink-0 border border-line"
                 />
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+                    <h3 className="font-medium text-ink text-sm line-clamp-2">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-gray-400 mt-1">{item.brand}</p>
+                    <p className="eyebrow text-ink-faint mt-1.5">
+                      {item.brand}
+                      {item.size && <span> · Size {item.size}</span>}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-base font-bold text-gray-900">
-                      ${item.price}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-display text-base font-semibold text-ink">
+                        ${(item.price * item.qty).toFixed(2)}
+                      </span>
+                      <div className="inline-flex items-center border border-line rounded-md">
+                        <button
+                          onClick={() => updateQty(item.lineId, item.qty - 1)}
+                          aria-label={`Decrease quantity of ${item.title}`}
+                          className="h-8 w-8 flex items-center justify-center text-ink-soft hover:text-ink"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-8 text-center text-sm font-medium" aria-live="polite">
+                          {item.qty}
+                        </span>
+                        <button
+                          onClick={() => updateQty(item.lineId, item.qty + 1)}
+                          aria-label={`Increase quantity of ${item.title}`}
+                          className="h-8 w-8 flex items-center justify-center text-ink-soft hover:text-ink"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
                     <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-xs text-red-500 hover:text-red-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
+                      onClick={() => removeFromCart(item.lineId)}
+                      aria-label={`Remove ${item.title} from cart`}
+                      className="text-xs text-ink-soft hover:text-danger transition-colors px-3 py-1.5 rounded-md hover:bg-danger-tint"
                     >
                       Remove
                     </button>
@@ -73,36 +140,64 @@ export default function Cart({ cartItems, removeFromCart }) {
 
           {/* Order Summary */}
           <div className="lg:w-80">
-            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Order Summary
-              </h3>
+            <div className="bg-card border border-line rounded-xl p-6 sticky top-24">
+              <h3 className="eyebrow text-ink mb-5">Order summary</h3>
+
+              <form onSubmit={handleApplyPromo} className="flex gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-faint" />
+                  <input
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Promo code"
+                    aria-label="Promo code"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-line rounded-md bg-paper focus:outline-none focus:ring-2 focus:ring-ink/15 focus:border-ink"
+                  />
+                </div>
+                <Button type="submit" variant="secondary" size="sm">
+                  Apply
+                </Button>
+              </form>
+              {promoMessage && (
+                <p className="text-xs text-danger mb-4" role="alert">
+                  {promoMessage.text}
+                </p>
+              )}
+
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-ink-soft">
                   <span>Subtotal</span>
-                  <span className="font-medium">${total.toFixed(2)}</span>
+                  <span className="font-medium text-ink">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-ink-soft">
                   <span>Shipping</span>
-                  <span className="font-medium text-green-600">Free</span>
+                  <span className={`font-medium ${shipping === 0 ? "text-success" : "text-ink"}`}>
+                    {shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}
+                  </span>
                 </div>
-                <div className="border-t border-gray-100 pt-3 flex justify-between text-gray-900 font-bold text-base">
+                <div className="border-t border-line pt-3 flex justify-between items-baseline text-ink font-semibold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span className="font-display text-lg">${total.toFixed(2)}</span>
                 </div>
               </div>
-              <button
+              <Button
                 onClick={() => navigate("/checkout")}
-                className="w-full mt-6 bg-gradient-to-r from-gray-900 to-gray-700 text-white py-3.5 rounded-xl font-semibold hover:from-gray-800 hover:to-gray-600 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                size="lg"
+                className="w-full mt-6"
               >
-                Proceed to Checkout
-              </button>
-              <button
+                Proceed to checkout
+              </Button>
+              <p className="flex items-center justify-center gap-1.5 text-xs text-ink-faint mt-3">
+                <Lock className="h-3.5 w-3.5" />
+                Secure checkout
+              </p>
+              <Button
                 onClick={() => navigate("/")}
-                className="w-full mt-3 text-sm text-gray-600 hover:text-black transition-colors py-2"
+                variant="ghost"
+                className="w-full mt-1"
               >
-                Continue Shopping
-              </button>
+                Continue shopping
+              </Button>
             </div>
           </div>
         </div>
